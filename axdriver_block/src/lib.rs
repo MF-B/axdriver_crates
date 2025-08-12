@@ -9,7 +9,7 @@ pub mod ramdisk;
 #[cfg(feature = "bcm2835-sdhci")]
 pub mod bcm2835sdhci;
 
-#[cfg(feature = "ahci")]
+#[cfg(feature = "ahci_driver")]
 pub mod ahci;
 
 #[doc(no_inline)]

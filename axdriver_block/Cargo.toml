@@ -14,7 +14,7 @@ categories.workspace = true
 [features]
 ramdisk = []
 bcm2835-sdhci = ["dep:bcm2835-sdhci"]
-ahci = ["dep:ahci_driver"]
+ahci_driver = ["dep:ahci_driver"]
 default = []
 
 [dependencies]
