@@ -14,9 +14,11 @@ categories.workspace = true
 [features]
 ramdisk = []
 bcm2835-sdhci = ["dep:bcm2835-sdhci"]
+ahci = ["dep:ahci_driver"]
 default = []
 
 [dependencies]
 log = "0.4"
 axdriver_base = { workspace = true }
 bcm2835-sdhci = { git = "https://github.com/lhw2002426/bcm2835-sdhci.git", rev = "e974f16", optional = true }
+ahci_driver = { git = "https://github.com/MF-B/ls2k1000la_driver.git", optional = true }
