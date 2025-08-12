@@ -17,6 +17,7 @@ pub struct AhciDriver {
 impl AhciDriver {
     /// Initialize the AHCI driver, returns `Ok` if successful.
     pub fn try_new() -> DevResult<AhciDriver> {
+        log::info!("AHCI: initializing");
         // Create an uninitialized AHCI device structure
         let mut device = MaybeUninit::<ahci_device>::uninit();
 
@@ -27,6 +28,7 @@ impl AhciDriver {
 
         let mut device = unsafe { device.assume_init() };
 
+        log::info!("try ahci_init");
         // Call the C-style initialization function
         let result = unsafe { ahci_init(&mut device) };
 
