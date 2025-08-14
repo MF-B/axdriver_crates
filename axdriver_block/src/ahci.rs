@@ -8,14 +8,6 @@ use ahci_driver::drv_ahci::{ahci_init, ahci_sata_read_common, ahci_sata_write_co
 use ahci_driver::libahci::ahci_device;
 use core::mem::MaybeUninit;
 
-unsafe extern "C" {
-    pub fn ahci_mdelay(ms: u32);
-    pub fn ahci_malloc_align(size: u64, align: u32) -> u64;
-    pub fn ahci_sync_dcache();
-    pub fn ahci_phys_to_uncached(va: u64) -> u64;
-    pub fn ahci_virt_to_phys(va: u64) -> u64;
-}
-
 /// AHCI driver implementation
 pub struct AhciDriver {
     /// AHCI device structure containing all the necessary hardware information
