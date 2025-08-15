@@ -28,7 +28,6 @@ impl AhciDriver {
 
         let mut device = unsafe { device.assume_init() };
 
-        log::info!("try ahci_init");
         // Call the C-style initialization function
         let result = unsafe { ahci_init(&mut device) };
 
