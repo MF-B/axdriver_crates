@@ -5,85 +5,7 @@ use crate::BlockDriverOps;
 use axdriver_base::{BaseDriverOps, DevError, DevResult, DeviceType};
 
 use ahci_driver::drv_ahci::{ahci_init, ahci_sata_read_common, ahci_sata_write_common};
-use ahci_driver::libahci::{ahci_device, ahci_blk_dev};
-use core::mem::MaybeUninit;
-
-// ATA ID constants
-const ATA_ID_SERNO_LEN: u32 = 20;
-const ATA_ID_FW_REV_LEN: u32 = 8;
-const ATA_ID_PROD_LEN: u32 = 40;
-
-#[derive(Copy, Clone)]
-#[repr(C, align(8))]
-pub struct ahci_cmd_hdr {
-    pub opts: u32,
-    pub status: u32,
-    pub tbl_addr_lo: u32,
-    pub tbl_addr_hi: u32,
-    pub reserved: [u32; 4],
-}
-
-#[derive(Copy, Clone)]
-#[repr(C, align(8))]
-pub struct ahci_sg {
-    pub addr_lo: u32,
-    pub addr_hi: u32,
-    pub reserved: u32,
-    pub flags_size: u32,
-}
-
-#[derive(Copy, Clone)]
-#[repr(C, align(8))]
-pub struct ahci_ioport {
-    pub port_mmio: u64,
-    pub cmd_slot: *mut ahci_cmd_hdr,
-    pub cmd_slot_dma: u64,
-    pub rx_fis: u64,
-    pub rx_fis_dma: u64,
-    pub cmd_tbl: u64,
-    pub cmd_tbl_dma: u64,
-    pub cmd_tbl_sg: *mut ahci_sg,
-}
-
-#[derive(Copy, Clone)]
-#[repr(C, align(8))]
-pub struct ahci_blk_dev {
-    pub lba48: bool,
-    pub _pad1: [u8; 7],              // 对齐到8字节边界
-    pub lba: u64,
-    pub blksz: u64,
-    pub queue_depth: u32,
-    pub _pad2: [u8; 4],              // 对齐到8字节边界
-    pub product: [u8; (ATA_ID_PROD_LEN + 1) as usize],   // 41字节
-    pub _pad3: [u8; 7],              // 填充到8字节对齐 (41 + 7 = 48, 48 % 8 = 0)
-    pub serial: [u8; (ATA_ID_SERNO_LEN + 1) as usize],    // 21字节
-    pub _pad4: [u8; 3],              // 填充到8字节对齐 (21 + 3 = 24, 24 % 8 = 0)
-    pub revision: [u8; (ATA_ID_FW_REV_LEN + 1) as usize], // 9字节
-    pub _pad5: [u8; 7],              // 填充到8字节对齐 (9 + 7 = 16, 16 % 8 = 0)
-}
-
-#[derive(Copy, Clone)]
-#[repr(C, align(8))]
-pub struct ahci_device {
-    pub mmio_base: u64,
-
-    pub flags: u32,
-
-    pub cap: u32,
-    pub cap2: u32,
-    pub version: u32,
-    pub port_map: u32,
-
-    pub pio_mask: u32,
-    pub udma_mask: u32,
-
-    pub n_ports: u8, // num of ports
-    pub port_map_linkup: u32,
-    pub port: [ahci_ioport; 32],
-    pub port_idx: u8, // the enabled port
-
-    pub blk_dev: ahci_blk_dev,
-}
+use ahci_driver::libahci::{ahci_blk_dev, ahci_cmd_hdr, ahci_device, ahci_ioport, ahci_sg};
 
 /// AHCI driver implementation
 pub struct AhciDriver {
@@ -122,17 +44,17 @@ impl AhciDriver {
 
             blk_dev: ahci_blk_dev {
                 lba48: false,
-                _pad1: [0; 7],              // 对齐到8字节边界
+                _pad1: [0; 7], // 对齐到8字节边界
                 lba: 0,
                 blksz: 0,
                 queue_depth: 0,
-                _pad2: [0; 4],              // 对齐到8字节边界
-                product: [0; (ATA_ID_PROD_LEN + 1) as usize],   // 41字节
-                _pad3: [0; 7],              // 填充到8字节对齐 (41 + 7 = 48, 48 % 8 = 0)
-                serial: [0; (ATA_ID_SERNO_LEN + 1) as usize],    // 21字节
-                _pad4: [0; 3],              // 填充到8字节对齐 (21 + 3 = 24, 24 % 8 = 0)
-                revision: [0; (ATA_ID_FW_REV_LEN + 1) as usize], // 9字节
-                _pad5: [0; 7],              // 填充到8字节对齐 (9 + 7 = 16, 16 % 8 = 0)
+                _pad2: [0; 4],    // 对齐到8字节边界
+                product: [0; 41], // 41字节
+                _pad3: [0; 7],    // 填充到8字节对齐 (41 + 7 = 48, 48 % 8 = 0)
+                serial: [0; 21],  // 21字节
+                _pad4: [0; 3],    // 填充到8字节对齐 (21 + 3 = 24, 24 % 8 = 0)
+                revision: [0; 9], // 9字节
+                _pad5: [0; 7],    // 填充到8字节对齐 (9 + 7 = 16, 16 % 8 = 0)
             },
         };
 
