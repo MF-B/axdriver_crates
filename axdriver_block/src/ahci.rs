@@ -5,7 +5,7 @@ use crate::BlockDriverOps;
 use axdriver_base::{BaseDriverOps, DevError, DevResult, DeviceType};
 
 use ahci_driver::drv_ahci::{ahci_init, ahci_sata_read_common, ahci_sata_write_common};
-use ahci_driver::libahci::ahci_device;
+use ahci_driver::libahci::{ahci_device, ahci_blk_dev};
 use core::mem::MaybeUninit;
 
 /// AHCI driver implementation
@@ -19,12 +19,36 @@ impl AhciDriver {
     pub fn try_new() -> DevResult<AhciDriver> {
         log::info!("AHCI: initializing");
         // Create an uninitialized AHCI device structure
-        let mut device = MaybeUninit::<ahci_device>::uninit();
+        let mut device = ahci_device {
+            mmio_base: 0,
+            // Initialize other fields as needed
+            flags: 0,
+            cap: 0,
+            cap2: 0,
+            version: 0,
+            port_map: 0,
+            pio_mask: 0,
+            udma_mask: 0,
+            n_ports: 0,
+            port_map_linkup: 0,
+            port: [0; 32],
+            port_idx: 0, // the enabled port
 
-        // Initialize the device structure to zero
-        unsafe {
-            core::ptr::write_bytes(device.as_mut_ptr(), 0, 1);
-        }
+            blk_dev: ahci_device_dev {
+                lba48: false,
+                _pad1: [0; 7],              // 对齐到8字节边界
+                lba: 0,
+                blksz: 0,
+                queue_depth: 0,
+                _pad2: [0; 4],              // 对齐到8字节边界
+                product: [0; 41],   // 41字节
+                _pad3: [0; 7],              // 填充到8字节对齐 (41 + 7 = 48, 48 % 8 = 0)
+                serial: [0; 21],    // 21字节
+                _pad4: [0; 3],              // 填充到8字节对齐 (21 + 3 = 24, 24 % 8 = 0)
+                revision: [0; 9], // 9字节
+                _pad5: [0; 7],              // 填充到8字节对齐 (9 + 7 = 16, 16 % 8 = 0)
+            },
+        };  
 
         let mut device = unsafe { device.assume_init() };
 
